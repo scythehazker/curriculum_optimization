@@ -1,0 +1,12 @@
+id: ain
+name: Aplikovaná informatika
+study_program_code: AIN
+required_folder: a
+
+required_optional_blocks:
+  - name: Blok teoretických predmetov (Blok A) + Blok aplikovaných predmetov (Blok B)
+    folder: b
+    min_credits: 18
+
+optional_folder: c
+state_exam_folder: state

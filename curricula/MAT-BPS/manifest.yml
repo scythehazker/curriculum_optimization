@@ -1,0 +1,15 @@
+id: matbps
+name: Matematika (vybratý blok Pravdepodobnosť a matematická štatistika)
+study_program_code: MAT
+required_folder: a
+
+required_optional_blocks:
+  - name: Pravdepodobnosť a matematická štatistika
+    folder: bps
+    min_credits: 22
+  - name: Ostatné povinne voliteľné
+    folder: b
+    min_credits: 9
+
+optional_folder: c
+state_exam_folder: state

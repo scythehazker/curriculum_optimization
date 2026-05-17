@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="sk">
+<head>
+    <meta charset="utf-8">
+    <title>Optimalizácia študijného plánu</title>
+</head>
+<body>
+    <h1>Optimalizácia študijného plánu</h1>
+
+    {% if error %}
+    <p><strong>Chyba:</strong> {{ error }}</p>
+    {% endif %}
+
+    {% if warnings %}
+    {% for warning in warnings %}
+    <p><strong>Upozornenie:</strong> {{ warning }}</p>
+    {% endfor %}
+    {% endif %}
+
+    {% if result_message %}
+    <p><strong>Výsledok:</strong> {{ result_message }}</p>
+    {% endif %}
+
+    {% if curriculum %}
+    <h2>Spracovaný študijný plán</h2>
+    <p><strong>Názov:</strong> {{ curriculum.name }}</p>
+    <p><strong>Počet rôznych predmetov:</strong> {{ curriculum.get_all_courses() | length }}</p>
+    <p><strong>Počet predmetov štátnej skúšky:</strong> {{ curriculum.state_exam_courses | length }}</p>
+    <p><strong>Kredity za predmety štátnej skúšky:</strong> {{ curriculum.get_state_exam_credits() }}</p>
+    {% endif %}
+
+    {% if solution_rows %}
+    <h2>Zhrnutie riešenia</h2>
+    {% if solution_summary %}
+    <p><strong>Vybraté predmety:</strong> {{ solution_summary.selected_course_count }}</p>
+    <p><strong>Celkový počet kreditov:</strong> {{ solution_summary.total_credits }}</p>
+    <p><strong>Kredity za predmety štátnej skúšky:</strong> {{ solution_summary.state_exam_credits }}</p>
+    <p><strong>Celkový počet kreditov s predmetmi štátnej skúšky:</strong> {{ solution_summary.total_credits_with_state_exams }}</p>
+    <p><strong>Celková pravdepodobnosť:</strong> {{ solution_summary.probability }}</p>
+    <p><strong>Logaritmus celkovej pravdepodobnosti:</strong> {{ solution_summary.log_probability }}</p>
+    <p><strong>Vážený priemer známok:</strong> {{ solution_summary.weighted_average }}</p>
+    {% endif %}
+
+    <h2>Riešenie</h2>
+    <table border="1" cellpadding="4" cellspacing="0">
+        <thead>
+            <tr>
+                <th>Kód</th>
+                <th>Názov</th>
+                <th>Typ</th>
+                <th>Kredity</th>
+                <th>Ročník</th>
+                <th>Semester</th>
+                <th>Pravdepodobnosť</th>
+                <th>Priemerná známka</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in solution_rows %}
+            <tr>
+                <td>{{ row.code }}</td>
+                <td>{{ row.name }}</td>
+                <td>{{ row.role }}</td>
+                <td>{{ row.credits }}</td>
+                <td>{{ row.year }}</td>
+                <td>{{ row.semester }}</td>
+                <td>{{ row.probability }}</td>
+                <td>{{ row.average_grade }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% endif %}
+    <h2>Vstupné dáta</h2>
+    <form method="post" enctype="multipart/form-data">
+        <input type="hidden" name="action" value="solve">
+
+        <fieldset>
+            <legend>Zdroj študijného plánu</legend>
+            <p>
+                Ak sa ten istý predmet nachádza vo viacerých kategóriách, použije sa iba raz v kategórii
+                s najvyššou prioritou: priorita typu A je vyššia ako typu B a priorita typu B je vyššia ako typu C.
+                Ak sa predmet nachádza vo viacerých B blokoch, použije sa prvý B blok podľa poradia v študijnom pláne.
+            </p>
+            <label>
+                <input
+                    type="radio"
+                    name="curriculum_source"
+                    value="preset"
+                    {% if selected_source == 'preset' %}checked{% endif %}
+                    {% if not curriculum_presets %}disabled{% endif %}
+                >
+                Vybrať existujúci študijný plán
+            </label>
+            <br>
+            <label>
+                <input
+                    type="radio"
+                    name="curriculum_source"
+                    value="upload"
+                    {% if selected_source == 'upload' %}checked{% endif %}
+                >
+                Nahrať informačné listy manuálne
+            </label>
+        </fieldset>
+
+        <fieldset id="preset_curriculum_fields">
+            <legend>Existujúci študijný plán</legend>
+            <label for="preset_id">Študijný plán:</label>
+            <select id="preset_id" name="preset_id">
+                {% for preset in curriculum_presets %}
+                <option
+                    value="{{ preset.id }}"
+                    {% if form_data.get('preset_id') == preset.id %}selected{% endif %}
+                >
+                    {{ preset.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </fieldset>
+
+        <fieldset id="uploaded_curriculum_fields">
+            <legend>Nahraný študijný plán</legend>
+            <label for="curriculum_name">Názov študijného programu:</label>
+            <input id="curriculum_name" name="curriculum_name" type="text" value="{{ form_data.get('curriculum_name', '') }}">
+            <br>
+            <label for="study_program_code">Kód študijného programu:</label>
+            <input id="study_program_code" name="study_program_code" type="text" value="{{ form_data.get('study_program_code', '') }}">
+            <p>Tento kód sa používa na výber odporúčaného semestra z informačného listu.</p>
+
+            <fieldset>
+                <legend>Počet blokov povinne voliteľných predmetov</legend>
+                <label for="block_count">Počet blokov povinne voliteľných predmetov:</label>
+                <input id="block_count" name="block_count" type="number" min="1" value="{{ block_count }}">
+                <button type="submit" formmethod="get">Aktualizovať bloky</button>
+            </fieldset>
+
+            <fieldset>
+                <legend>Povinné predmety</legend>
+                <input name="required_courses" type="file" multiple>
+            </fieldset>
+
+            <fieldset>
+                <legend>Povinne voliteľné bloky</legend>
+                {% for block_index in range(block_count) %}
+                <fieldset>
+                    <legend>Blok {{ block_index + 1 }}</legend>
+                    <label for="required_optional_name_{{ block_index }}">Názov bloku:</label>
+                    <input
+                        id="required_optional_name_{{ block_index }}"
+                        name="required_optional_name_{{ block_index }}"
+                        type="text"
+                        value="{{ form_data.get('required_optional_name_' ~ block_index, '') }}"
+                    >
+                    <br>
+                    <label for="required_optional_min_credits_{{ block_index }}">Minimálny počet kreditov:</label>
+                    <input
+                        id="required_optional_min_credits_{{ block_index }}"
+                        name="required_optional_min_credits_{{ block_index }}"
+                        type="number"
+                        min="0"
+                        value="{{ form_data.get('required_optional_min_credits_' ~ block_index, '0') }}"
+                    >
+                    <br>
+                    <label for="required_optional_block_{{ block_index }}">Nahrať informačné listy:</label>
+                    <input
+                        id="required_optional_block_{{ block_index }}"
+                        name="required_optional_block_{{ block_index }}"
+                        type="file"
+                        multiple
+                    >
+                </fieldset>
+                {% endfor %}
+            </fieldset>
+
+            <fieldset>
+                <legend>Výberové predmety</legend>
+                <input name="optional_courses" type="file" multiple>
+            </fieldset>
+
+            <fieldset>
+                <legend>Predmety štátnej skúšky</legend>
+                <input name="state_exam_courses" type="file" multiple>
+            </fieldset>
+        </fieldset>
+
+        <label>
+            <input
+                type="checkbox"
+                name="state_exam_credits_counted"
+                {% if state_exam_credits_counted %}checked{% endif %}
+            >
+            Započítať kredity za predmety štátnej skúšky do minimálneho počtu kreditov
+        </label>
+
+        <fieldset>
+            <legend>Typ optimalizácie</legend>
+            <label>
+                <input
+                    type="radio"
+                    name="solver_type"
+                    value="probability"
+                    {% if form_data.get('solver_type', 'probability') == 'probability' %}checked{% endif %}
+                >
+                Maximalizovať pravdepodobnosť absolvovania
+            </label>
+            <br>
+            <label>
+                <input
+                    type="radio"
+                    name="solver_type"
+                    value="weighted_average"
+                    {% if form_data.get('solver_type') == 'weighted_average' %}checked{% endif %}
+                >
+                Minimalizovať vážený študijný priemer
+            </label>
+        </fieldset>
+
+        <fieldset>
+            <legend>Číselné obmedzenia</legend>
+            <label for="length_of_study">Dĺžka štúdia:</label>
+            <input id="length_of_study" name="length_of_study" type="number" min="1" value="{{ form_data.get('length_of_study', '0') }}">
+            <br>
+
+            <label for="m_A">Minimálny celkový počet kreditov:</label>
+            <input id="m_A" name="m_A" type="number" min="1" value="{{ form_data.get('m_A', '1') }}">
+            <br>
+
+            <label for="m_V">Minimálna pravdepodobnosť úspešného ukončenia:</label>
+            <input id="m_V" name="m_V" type="number" min="0" max="1" step="0.0001" value="{{ form_data.get('m_V', '0.0') }}">
+            <br>
+
+            <label for="m_S">Maximálny vážený priemer:</label>
+            <input id="m_S" name="m_S" type="number" min="1" max="4" step="0.0001" value="{{ form_data.get('m_S', '4.0') }}">
+            <br>
+
+            <label for="m_PC">Maximálny celkový počet predmetov:</label>
+            <input id="m_PC" name="m_PC" type="number" min="0" value="{{ form_data.get('m_PC', '999') }}">
+            <br>
+
+            <label for="m_PR">Maximálny počet predmetov za ročník:</label>
+            <input id="m_PR" name="m_PR" type="number" min="0" value="{{ form_data.get('m_PR', '999') }}">
+            <br>
+
+            <label for="m_PS">Maximálny počet predmetov za semester:</label>
+            <input id="m_PS" name="m_PS" type="number" min="0" value="{{ form_data.get('m_PS', '999') }}">
+            <br>
+
+            <label for="m_KC">Maximálny celkový počet kreditov:</label>
+            <input id="m_KC" name="m_KC" type="number" min="0" value="{{ form_data.get('m_KC', '999') }}">
+            <br>
+
+            <label for="m_KR">Maximálny počet kreditov za ročník:</label>
+            <input id="m_KR" name="m_KR" type="number" min="0" value="{{ form_data.get('m_KR', '999') }}">
+            <br>
+
+            <label for="m_KS">Maximálny počet kreditov za semester:</label>
+            <input id="m_KS" name="m_KS" type="number" min="0" value="{{ form_data.get('m_KS', '999') }}">
+            <br>
+        </fieldset>
+
+        <fieldset>
+            <legend>Ohraničenia na prechod medzi časťami štúdia</legend>
+            <p>Použite roky od 1 po dĺžku štúdia. Ako zimný semester napíšte 0 a ako letný semester napíšte 1.</p>
+            <label for="cumulative_sums">Kumulatívne súčty (jeden riadok = rok,semester,kredity):</label>
+            <br>
+            <textarea id="cumulative_sums" name="cumulative_sums" rows="5" cols="60">{{ form_data.get('cumulative_sums', '') }}</textarea>
+            <br>
+
+            <label for="individual_sums1">Samostatné súčty za rok (jeden riadok = rok,kredity):</label>
+            <br>
+            <textarea id="individual_sums1" name="individual_sums1" rows="5" cols="60">{{ form_data.get('individual_sums1', '') }}</textarea>
+            <br>
+
+            <label for="individual_sums2">Samostatné súčty za semester (jeden riadok = rok,semester,kredity):</label>
+            <br>
+            <textarea id="individual_sums2" name="individual_sums2" rows="5" cols="60">{{ form_data.get('individual_sums2', '') }}</textarea>
+        </fieldset>
+
+        <button type="submit">Spustiť riešenie</button>
+    </form>
+
+    <script>
+        function updateCurriculumSource() {
+            const selectedSource = document.querySelector('input[name="curriculum_source"]:checked')?.value || 'upload';
+            const presetFields = document.getElementById('preset_curriculum_fields');
+            const uploadedFields = document.getElementById('uploaded_curriculum_fields');
+            presetFields.disabled = selectedSource !== 'preset';
+            uploadedFields.disabled = selectedSource !== 'upload';
+        }
+
+        document.querySelectorAll('input[name="curriculum_source"]').forEach((input) => {
+            input.addEventListener('change', updateCurriculumSource);
+        });
+        updateCurriculumSource();
+    </script>
+</body>
+</html>

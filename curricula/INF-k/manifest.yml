@@ -1,0 +1,15 @@
+id: infk
+name: Informatika (konverzný program)
+study_program_code: INF/k
+required_folder: a
+
+required_optional_blocks:
+  - name: Konverzné predmety - povinne voliteľné
+    folder: bk
+    min_credits: 12
+  - name: Povinne voliteľné
+    folder: b
+    min_credits: 17
+
+optional_folder: c
+state_exam_folder: state

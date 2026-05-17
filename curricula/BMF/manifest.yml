@@ -1,0 +1,15 @@
+id: bmf
+name: Biomedicínska fyzika
+study_program_code: BMF
+required_folder: a
+
+required_optional_blocks:
+  - name: Blok fyzikálnych praktík
+    folder: bfp
+    min_credits: 6
+  - name: Blok ostatných povinne voliteľných predmetov
+    folder: b
+    min_credits: 10
+
+optional_folder: c
+state_exam_folder: state

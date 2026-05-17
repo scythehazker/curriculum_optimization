@@ -1,0 +1,9 @@
+id: pma
+name: Poistná matematika
+study_program_code: PMA
+required_folder: a
+
+required_optional_blocks: []
+
+optional_folder: c
+state_exam_folder: state

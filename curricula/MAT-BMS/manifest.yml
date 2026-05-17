@@ -1,0 +1,15 @@
+id: matbms
+name: Matematika (vybratý blok Matematické štruktúry)
+study_program_code: MAT
+required_folder: a
+
+required_optional_blocks:
+  - name: Matematické štruktúry
+    folder: bms
+    min_credits: 24
+  - name: Ostatné povinne voliteľné
+    folder: b
+    min_credits: 7
+
+optional_folder: c
+state_exam_folder: state

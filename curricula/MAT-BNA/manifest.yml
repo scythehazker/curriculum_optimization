@@ -1,0 +1,15 @@
+id: matbna
+name: Matematika (vybratý blok Numerická analýza a optimalizácia)
+study_program_code: MAT
+required_folder: a
+
+required_optional_blocks:
+  - name: Numerická analýza a optimalizácia
+    folder: bna
+    min_credits: 25
+  - name: Ostatné povinne voliteľné
+    folder: b
+    min_credits: 6
+
+optional_folder: c
+state_exam_folder: state

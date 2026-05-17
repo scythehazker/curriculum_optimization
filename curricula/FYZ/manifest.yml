@@ -1,0 +1,15 @@
+id: fyz
+name: Fyzika
+study_program_code: FYZ
+required_folder: a
+
+required_optional_blocks:
+  - name: Fyzikálne praktiká
+    folder: bfp
+    min_credits: 12
+  - name: Povinne voliteľné
+    folder: b
+    min_credits: 6
+
+optional_folder: c
+state_exam_folder: state

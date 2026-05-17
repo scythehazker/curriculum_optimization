@@ -1,0 +1,12 @@
+id: bin
+name: Bioinformatika
+study_program_code: BIN
+required_folder: a
+
+required_optional_blocks:
+  - name: Povinne voliteľné
+    folder: b
+    min_credits: 4
+
+optional_folder: c
+state_exam_folder: state

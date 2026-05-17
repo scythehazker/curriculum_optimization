@@ -1,0 +1,12 @@
+id: tef
+name: Technická fyzika
+study_program_code: TEF
+required_folder: a
+
+required_optional_blocks:
+  - name: Povinne voliteľné
+    folder: b
+    min_credits: 14
+
+optional_folder: c
+state_exam_folder: state

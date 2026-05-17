@@ -1,0 +1,15 @@
+id: matbma
+name: Matematika (vybratý blok Matematická analýza)
+study_program_code: MAT
+required_folder: a
+
+required_optional_blocks:
+  - name: Matematická analýza
+    folder: bma
+    min_credits: 30
+  - name: Ostatné povinne voliteľné
+    folder: b
+    min_credits: 1
+
+optional_folder: c
+state_exam_folder: state

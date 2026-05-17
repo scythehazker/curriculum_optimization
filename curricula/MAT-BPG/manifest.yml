@@ -1,0 +1,15 @@
+id: matbpg
+name: Matematika (vybratý blok Počítačová grafika)
+study_program_code: MAT
+required_folder: a
+
+required_optional_blocks:
+  - name: Počítačová grafika
+    folder: bpg
+    min_credits: 26
+  - name: Ostatné povinne voliteľné
+    folder: b
+    min_credits: 5
+
+optional_folder: c
+state_exam_folder: state
